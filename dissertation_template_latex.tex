@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ASU Dissertation Template
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright 2019 Robert W. Kutter (robert@kutterconsulting.com)
+% Copyright 2020 Robert W. Kutter (robert@kutterconsulting.com)
 %
 %   See also: http://kutterconsulting.com
 %
@@ -51,12 +51,12 @@
                                         %   split the title across lines,
                                         %   use another \listadd command for the
                                         %   second line
-\newcommand*\Author{Your Name}                      %<Enter your name; must match official transcript
+\newcommand*\Author{Your Name}          %<Enter your name; must match official transcript
 \newcommand*{\documentname}%
   {Dissertation}                        %<Enter the type of document (capitalized)
 \newcommand*{\degreename}
   {Doctor of Philosophy}                %<Enter the type of degree (capitalized)
-\newcommand*\defdate{Month Year}                       %<Give month (written out fully) and year of
+\newcommand*\defdate{Month Year}        %<Give month (written out fully) and year of
                                         %   the oral defense
 \listadd{\committeechair}{Chair Name}   %<Enter committee chair name; use \listadd for
 %\listadd{\committeechair}{Another name}%   for additional names
@@ -133,8 +133,31 @@
   \defaultfontfeatures{Mapping=tex-text,% Font spec setting
     Scale=MatchLowercase}
   \newcommand*{\euro}{€}
-  \setmainfont{Garamond}                %<Set the main font; make sure the font is correct
+
+  % Using fonts in XeLaTeX can be complicated; the following settings
+  % work when this file is compiled inside the Docker container produced
+  % by the `build.sh` script.
+  %
+  % Sometimes something simple like the following will work:
+  %
+  %   \setmainfont{Garamond}
+  %
+  % But often the easiest solution is to move font files (*.otf or *.ttf) into
+  % a sub-directory and provide the direct path to them here.
+  %
+  % See `fontspec` documentation for more on using local font files.
+  %
+  \setmainfont{EBGaramond12}[           %<Set the main font; make sure the font is correct
                                         %   for the font size (See ASU Style Guide)
+    Path          = /usr/share/fonts/opentype/ebgaramond/,
+    Extension     = .otf ,
+    UprightFont   = *-Regular ,
+    ItalicFont    = *-Italic ,
+    % Notice that bold is missing here because the Docker image does not have
+    % a bold typeface for Garamond; it would probably be possible to find
+    % one on your local system or online.
+  ]
+
 %  \setmathfont(Digits,Latin,Greek)%     %~Uncomment two lines to set a font for math%
 %    {MATHFONT}
 \fi
@@ -406,11 +429,6 @@
 \renewcommand{\cftfigureaftersnumb}%    % Put table captions in List of Figures in title
   {\titlecap}%                          %   case
 
-\newcommand{\macrocapwrap}[1]{%         % Use this macro to place other macros inside
-  {\bgroup\bgroup{{#1}}\egroup\egroup}% %   captions, e.g., '\macrocapwrap{\ref{figure1}}'
-}%                                      % Note: Necessary due to the 'titlecaps' package
-                                        %   which modifies contents of captions
-
 \renewcommand*{\cftpartpagefont}%       % Use normal font for all page numbers
   {\normalfont}
 \renewcommand*{\cftchapterpagefont}%
@@ -543,7 +561,8 @@
   %
   % Here is the algorithm:
   %   Floor(Log10(\number)) + 1
-  \LOG[10]{\totfig}{\tempAfig}%
+  \MAX{\totfig}{1}{\figurecount}
+  \LOG[10]{\figurecount}{\tempAfig}%
   \FLOOR{\tempAfig}{\tempBfig}%
   \ADD{\tempBfig}{1}{\digitsinfig}%     % Number of digits in number of figs
   %
@@ -571,7 +590,8 @@
 \pretocmd{\listoftables}{%
   % Calculate the number of digits in
   % the total number of tables
-  \LOG[10]{\tottab}{\tempAtab}%
+  \MAX{\tottab}{1}{\tablecount}
+  \LOG[10]{\tablecount}{\tempAtab}%
   \FLOOR{\tempAtab}{\tempBtab}%
   \ADD{\tempBtab}{1}{\digitsintab}%     % Number of digits in number of tabs
   % Calculate space factor for tables
@@ -755,10 +775,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newcommand{\bibfilename}{sample_library}%<Enter the name of the *.bib file containing the
-                                        %   reference information for sources cited in
-                                        %   the text. God help you if you're doing
+\newcommand{\bibfilename}{%             %<Enter the name of the *.bib file containing the
+  src/sample/library%                   %   reference information for sources cited in
+}%                                      %   the text. God help you if you're doing
                                         %   citations manually.
+
 \newcommand{\bibheading}{References}    %<Enter the heading for the references section:
                                         %   'References', 'Works Cited', or 'Bibliography'
 
@@ -789,9 +810,9 @@
   \MakeOuterQuote{"}%                   %   error when used with natbib
 }{%                                     % Settings for 'natbib'
   \usepackage{natbib}%
-  \newcommand{\natbibstyle}{asudis}%    %~Enter the name of the *.bst file to use to
-                                        %   format citations with natbib. Default is
-                                        %   'asudis'. I do not know where 'asudis' came
+  \newcommand{\natbibstyle}{%           %~Enter the name of the *.bst file to use to
+    src/asudis%                         %   format citations with natbib. Default is
+  }%                                    %   'asudis'. I do not know where 'asudis' came
                                         %   from, but apparently it formats citations
                                         %   correctly because it was included with the
                                         %   previous LaTeX template.
@@ -812,6 +833,11 @@
   \renewcommand\@memmain@floats{}
   \renewcommand\@memback@floats{}
 \makeatletter
+
+\newcommand{\macrocapwrap}[1]{%         % Use this macro to place other macros inside
+  {\bgroup\bgroup{{#1}}\egroup\egroup}% %   captions, e.g., '\macrocapwrap{\ref{figure1}}'
+}%                                      % Note: Necessary due to the 'titlecaps' package
+                                        %   which modifies contents of captions
 
 %%% Tables %%%
 %
@@ -886,7 +912,7 @@
 \edef\theonelinetitle%
   {\onelinetitle}
 
-\renewcommand*{\do}[1]{{#1}\ }%         % Build keyword string to output to pdf document
+\renewcommand*{\do}[1]{{#1}\ }%          % Build keyword string to output to pdf document
 \newcommand*{\pdfkeywordsstring}{%
   \dolistloop{\keywords}%
 }
@@ -1054,7 +1080,7 @@
 \frontmatter
 
 \chapter*{Abstract}                     % Abstract is required
-\input{sample_abstract}                 %<Enter the name of the .tex file containing your
+\input{src/sample/abstract}             %<Enter the name of the .tex file containing your
                                         %   your abstract or omit this line and type in
                                         %   your abstract here.
 
@@ -1062,12 +1088,12 @@
 %\clearpage                             %~If you don't wish to display the heading
                                         %   'Dedication', comment out the previous line
                                         %   and use this one instead.
-\input{sample_dedication}               %<Enter the name of the .tex file containing your
+\input{src/sample/dedication}           %<Enter the name of the .tex file containing your
                                         %   your dedication or omit this line and type in
                                         %   your dedication here.
 
 \chapter*{Acknowledgments}              %~Acknowledgments are optional
-\input{sample_acknowledgments}          %<Enter the name of the .tex file containing your
+\input{src/sample/acknowledgments}      %<Enter the name of the .tex file containing your
                                         %   acknowledgments or omit this line and type in
                                         %   your acknowledgments here.
 
@@ -1085,13 +1111,18 @@
   }
 
 \clearpage
-\pagestyle{ASUlot}
-\listoftables                           % List of Tables should appear in TOC, so use
+\ifnumcomp{\tottab}{>}{0}{%
+  \pagestyle{ASUlot}
+  \listoftables                         % List of Tables should appear in TOC, so use
                                         %   unstarred version of \listoftables
-\clearpage
-\pagestyle{ASUlof}
-\listoffigures                          % List of Figures should appear in TOC, so use
+  \clearpage
+}{}
+
+\ifnumcomp{\totfig}{>}{0}{%
+  \pagestyle{ASUlof}
+  \listoffigures                        % List of Figures should appear in TOC, so use
                                         %   unstarred version of \listoffigures
+}{}
 
 %\chapter{Definitions}                  %~OTHER LISTS (optional)
 %\input{definitions}                    %<Enter the name of the .tex file or omit this
@@ -1142,6 +1173,9 @@
                                         % \subsubsection
                                         % \paragraph
                                         % \subparagraph
+\iftoggle{sample}{%
+  \include{src/sample/chapter}%
+}{}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Back matter
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1150,7 +1184,6 @@
 \AfterEndEnvironment{figure}{\SingleSpacing}
 \AfterEndEnvironment{quote}{\SingleSpacing}
 \AfterEndEnvironment{quotation}{\SingleSpacing}
-
 
 \edef\defaulttolerance{\the\tolerance}
 \tolerance 500                          % Increase tolerance to prevent material extending into margins
@@ -1234,6 +1267,9 @@
 %\include{appendix2}                     %   \include rather than \input for appendices.
 %\include{appendix3}% etc.               %   All heading commands are the same as above,
                                          %   e.g., \chapter, \section, etc.
+\iftoggle{sample}{%
+  \include{src/sample/appendix}%
+}{}
 
 \backmatter                             % Start back matter according to documentclass
 \makeatletter                           % Do not clear page after printing title for
